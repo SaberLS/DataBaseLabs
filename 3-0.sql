@@ -1,4 +1,4 @@
--- 1 --------------------------------
+-- I --------------------------------
 -- 1. Wybierz nazwy i ceny produktów (baza northwind) o cenie jednostkowej pomiędzy 20.00 a 30.00, dla każdego produktu podaj dane adresowe dostawcy
 USE Northwind
 SELECT
@@ -75,7 +75,7 @@ FROM
         AND MONTH(o.OrderDate) = 3
 
 
--- 2.---------------------------------------------------------------------------
+-- II ---------------------------------------------------------------------------
 -- 1. Napisz polecenie, które wyświetla listę dzieci będących członkami biblioteki (baza library). Interesuje nas imię, nazwisko i data urodzenia dziecka.
 USE library
 SELECT
@@ -116,6 +116,8 @@ FROM
 
 
 -- 4. Napisz polecenie które podaje listę książek (mumery ISBN) zarezerwowanych przez osobę o nazwisku: Stephen A. Graff
+USE library
+
 SELECT
     r.isbn
 FROM
@@ -127,22 +129,83 @@ FROM
         AND m.middleinitial = 'A'
 
 
---3. ----------------------------------------------
+-- III ----------------------------------------------
 
 -- 1. Wybierz nazwy i ceny produktów (baza northwind) o cenie jednostkowej pomiędzy 20.00 a 30.00, dla każdego produktu podaj dane adresowe dostawcy, interesują nas tylko produkty z kategorii ‘Meat/Poultry’
+USE Northwind
+
+SELECT
+    p.ProductName
+    ,p.UnitPrice
+    ,s.Address
+    ,s.City
+    ,s.Country
+    ,s.PostalCode
+FROM
+    Products AS p
+    LEFT JOIN Suppliers AS s
+    ON p.SupplierID = s.SupplierID
+    INNER JOIN Categories AS c
+    ON p.CategoryID = c.CategoryID
+        AND c.CategoryName = 'Meat/Poultry'
+WHERE 
+    p.UnitPrice BETWEEN 20 AND 30
 
 
 -- 2. Wybierz nazwy i ceny produktów z kategorii ‘Confections’ dla każdego produktu podaj nazwę dostawcy.
+USE Northwind
+
+SELECT
+    p.ProductName
+    ,p.UnitPrice
+    ,s.CompanyName
+FROM
+    Products AS p
+    INNER JOIN Categories AS c
+    ON p.CategoryID = c.CategoryID
+        AND c.CategoryName = 'Confections'
+    LEFT JOIN Suppliers AS s
+    ON p.SupplierID = s.SupplierID
 
 
 -- 3. Dla każdego klienta podaj liczbę złożonych przez niego zamówień. Zbiór wynikowy powinien zawierać nazwę klienta, oraz liczbę zamówień
+USE Northwind
+
+SELECT
+    c.CompanyName
+    ,oc.OrderCount
+FROM
+    Customers AS c
+    LEFT JOIN ( SELECT
+        o.CustomerID
+        ,COUNT(*) AS [OrderCount]
+    FROM
+        Orders AS o
+    GROUP BY o.CustomerID
+    ) AS oc
+    ON c.CustomerID = oc.CustomerID
 
 
 -- 4. Dla każdego klienta podaj liczbę złożonych przez niego zamówień w marcu 1997r
+SELECT
+    c.CompanyName
+    ,oc.OrderCount
+FROM
+    Customers AS c
+    LEFT JOIN ( SELECT
+        o.CustomerID
+        ,COUNT(*) AS [OrderCount]
+    FROM
+        Orders AS o
+    WHERE 
+        YEAR(o.OrderDate) = 1997
+        AND MONTH(o.OrderDate) = 3
+    GROUP BY o.CustomerID
+    ) AS oc
+    ON c.CustomerID = oc.CustomerID
 
---------------
 
-
+-- IV. --------------------------------------------------------------------------------------------------
 
 
 -- 1. Który ze spedytorów był najaktywniejszy w 1997 roku, podaj nazwę tego spedytora
