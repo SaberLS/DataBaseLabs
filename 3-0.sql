@@ -1,22 +1,81 @@
-USE Northwind
-
+-- 1 --------------------------------
 -- 1. Wybierz nazwy i ceny produktów (baza northwind) o cenie jednostkowej pomiędzy 20.00 a 30.00, dla każdego produktu podaj dane adresowe dostawcy
+USE Northwind
+SELECT
+    p.ProductName
+    ,p.ProductID
+    ,s.Address
+    ,s.City
+    ,s.Country
+    ,s.PostalCode
+FROM
+    Products AS p
+    LEFT JOIN Suppliers AS s
+    ON p.SupplierID = s.SupplierID
+WHERE p.UnitPrice BETWEEN 20 AND 30
 
 
 -- 2. Wybierz nazwy produktów oraz inf. o stanie magazynu dla produktów dostarczanych przez firmę ‘Tokyo Traders’
+USE Northwind
+SELECT
+    p.ProductName
+    ,p.UnitsInStock
+FROM
+    Products AS p
+    INNER JOIN Suppliers AS s
+    ON p.SupplierID = s.SupplierID AND s.CompanyName = 'Tokyo Traders'
 
 
 -- 3. Czy są jacyś klienci którzy nie złożyli żadnego zamówienia w 1997 roku, jeśli tak TO pokaż ich dane adresowe
+USE Northwind
+SELECT
+    c.CustomerID
+    ,c.Address
+    ,c.City
+    ,c.Country
+    ,c.PostalCode
+FROM
+    Customers AS c
+    LEFT JOIN (SELECT
+        o.CustomerID
+    FROM
+        Orders AS o
+    WHERE YEAR(o.OrderDate) = 1997
+    GROUP BY o.CustomerID
+    ) AS o997
+    ON c.CustomerID = o997.CustomerID
+WHERE o997.CustomerID IS NULL
 
 
--- 4. Wybierz nazwy i numery telefonów dostawców, dostarczających produkty, których aktualnie nie  ma w magazynie.
+-- 4. Wybierz nazwy i numery telefonów dostawców, dostarczających produkty, których aktualnie nie ma w magazynie.
+USE Northwind
+SELECT
+    s.ContactName
+    ,s.Phone
+FROM
+    Suppliers AS s
+    JOIN Products AS p
+    ON s.SupplierID = p.SupplierID
+        AND p.UnitsInStock = 0
 
 
 -- 5. Wybierz zamówienia złożone w marcu 1997. Dla każdego takiego zamówienia wyświetl jego numer, datę złożenia zamówienia oraz nazwę i numer telefonu klienta
+USE Northwind
+SELECT
+    o.OrderID
+    ,o.OrderDate
+    ,c.CompanyName
+    ,c.Phone
+    ,o.OrderDate
+FROM
+    Orders AS o
+    JOIN Customers AS c
+    ON o.CustomerID = c.CustomerID
+        AND YEAR(o.OrderDate) = 1997
+        AND MONTH(o.OrderDate) = 3
 
 
------------------------------------------------------------------------------
-
+-- 2.---------------------------------------------------------------------------
 -- 1. Napisz polecenie, które wyświetla listę dzieci będących członkami biblioteki (baza library). Interesuje nas imię, nazwisko i data urodzenia dziecka.
 
 
