@@ -97,8 +97,9 @@ HAVING COUNT(*) > 5
 -- Wyświetl  klientów dla których w 1998 roku zrealizowano więcej niż 8 zamówień wyniki
 -- posortuj malejąco wg  łącznej kwoty za dostarczenie zamówień dla każdego z klientów)
 SELECT
-    COUNT(*)
+    COUNT(*) AS [OrderCount]
     ,CustomerID
+    ,SUM(Freight) AS [FreightSum]
 FROM
     Orders
 GROUP BY CustomerID
