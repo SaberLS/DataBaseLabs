@@ -206,18 +206,136 @@ FROM
 
 
 -- IV. --------------------------------------------------------------------------------------------------
-
-
 -- 1. Który ze spedytorów był najaktywniejszy w 1997 roku, podaj nazwę tego spedytora
+USE Northwind
+
+SELECT
+    TOP 1
+    s.CompanyName
+    ,oc.OrderCount
+FROM
+    Shippers AS s
+    LEFT JOIN
+    (SELECT
+        o.ShipVia
+        ,COUNT(*) AS [OrderCount]
+    FROM
+        Orders AS o
+    WHERE 
+        YEAR(o.OrderDate) = 1997
+    GROUP BY o.ShipVia
+    )
+AS oc
+    ON s.ShipperID = oc.ShipVia
+ORDER BY oc.OrderCount DESC
 
 
 -- 2. Dla każdego zamówienia podaj wartość zamówionych produktów. Zbiór wynikowy powinien zawierać nr zamówienia, datę zamówienia, nazwę klienta oraz wartość zamówionych produktów
+USE Northwind
+
+SELECT
+    o.OrderId
+    ,o.OrderDate
+    ,c.CompanyName
+    ,t.TotalValue
+FROM
+    Orders AS o
+    LEFT JOIN(SELECT
+        od.OrderID
+        ,CONVERT(
+            MONEY
+            ,SUM((od.UnitPrice * od.Quantity) * (1 - od.Discount))
+        ) AS TotalValue
+    FROM
+        [Order Details] AS od
+    GROUP BY od.OrderID) AS t
+    ON o.OrderID = t.OrderID
+    LEFT JOIN Customers AS c
+    ON o.CustomerID = c.CustomerID
 
 
 -- 3. Dla każdego zamówienia podaj jego pełną wartość (wliczając opłatę za przesyłkę). Zbiór wynikowy powinien zawierać nr zamówienia, datę zamówienia, nazwę klienta oraz pełną wartość zamówienia
+USE Northwind
+
+SELECT
+    o1.OrderID
+    ,o1.OrderDate
+    ,c.CompanyName
+    ,tp.TotalPrice
+FROM
+    Orders AS o1
+    LEFT JOIN(
+    SELECT
+        o.OrderID
+        ,SUM(t.TotalValue + o.Freight) AS TotalPrice
+    FROM
+        Orders AS o
+        LEFT JOIN
+        (SELECT
+            od.OrderID
+        ,CONVERT(
+            MONEY
+            ,SUM((od.UnitPrice * od.Quantity) * (1 - od.Discount))
+        ) AS TotalValue
+        FROM
+            [Order Details] AS od
+        GROUP BY od.OrderID)
+AS t ON o.OrderID = t.OrderID
+    GROUP BY o.OrderID
+) AS tp ON o1.OrderID = tp.OrderID
+    LEFT JOIN Customers AS c
+    ON o1.CustomerID = c.CustomerID
+
+-- SELECT
+--     o .OrderID
+--     ,SUM(t.TotalValue + o.Freight
+-- ) AS TotalPrice
+-- FROM
+--     Orders AS o
+--     JOIN
+--     (SELECT
+--         od.OrderID
+--         ,CONVERT(
+--             MONEY
+--             ,SUM((od.UnitPrice * od.Quantity) * (1 - od.Discount))
+--         ) AS TotalValue
+--     FROM
+--         [Order Details] AS od
+--     GROUP BY od.OrderID)
+-- AS t ON o.OrderID = t.OrderID
+-- GROUP BY o.OrderID
 
 
-----------------------------------------------------
+
+-- SELECT
+--     SUM(t.TotalValue + o.Freight) AS TotalPrice
+-- FROM
+--     Orders AS o
+--     JOIN (SELECT
+--         od.OrderID
+--         ,CONVERT(
+--             MONEY
+--             ,SUM((od.UnitPrice * od.Quantity) * (1 - od.Discount))
+--         ) AS TotalValue
+--     FROM
+--         [Order Details] AS od
+--     GROUP BY od.OrderID)
+--     AS t ON o.OrderID = t.OrderID
+-- GROUP BY o.OrderID
+
+--SELECT
+--     od.OrderID
+--     ,CONVERT(
+--         MONEY
+--         ,SUM((od.UnitPrice * od.Quantity) * (1 - od.Discount))
+--     ) AS TotalValue
+-- FROM
+--     [Order Details] AS od
+-- GROUP BY od.OrderID
+
+
+
+-- V --------------------------------------------------
 
 
 -- 1. Wybierz nazwy i numery telefonów klientów, którzy kupowali produkty  z kategorii ‘Confections’
