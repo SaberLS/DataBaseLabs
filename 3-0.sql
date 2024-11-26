@@ -77,17 +77,57 @@ FROM
 
 -- 2.---------------------------------------------------------------------------
 -- 1. Napisz polecenie, które wyświetla listę dzieci będących członkami biblioteki (baza library). Interesuje nas imię, nazwisko i data urodzenia dziecka.
-
+USE library
+SELECT
+    m.lastname
+    ,m.firstname
+    ,j.birth_date
+FROM
+    juvenile AS j
+    INNER JOIN member AS m
+    ON j.member_no = m.member_no 
 
 -- 2. Napisz polecenie, które podaje tytuły aktualnie wypożyczonych książek
+USE library
+SELECT
+    DISTINCT
+    t.title
+FROM
+    loan AS l
+    INNER JOIN title AS t
+    ON l.title_no = t.title_no
 
 
 -- 3. Podaj informacje o karach zapłaconych za przetrzymywanie książki o tytule ‘Tao Teh King’.  Interesuje nas data oddania książki, ile dni była przetrzymywana i jaką zapłacono karę
+USE library
+
+SELECT
+    CASE 
+        WHEN DATEDIFF(DAY ,l.due_date, l.in_date) < 0 THEN 0
+        ELSE DATEDIFF(DAY ,l.due_date, l.in_date)  
+    END AS [dateDiff]
+    ,l.fine_paid
+    ,t.title
+FROM
+    loanhist AS l
+    INNER JOIN title AS t
+    ON l.title_no = t.title_no
+        AND t.title = 'Tao Teh King'
 
 
 -- 4. Napisz polecenie które podaje listę książek (mumery ISBN) zarezerwowanych przez osobę o nazwisku: Stephen A. Graff
+SELECT
+    r.isbn
+FROM
+    reservation AS r
+    INNER JOIN member AS m
+    ON r.member_no = m.member_no
+        AND m.lastname = 'Graff'
+        AND m.firstname = 'Stephen'
+        AND m.middleinitial = 'A'
 
-------------------------------------------------
+
+--3. ----------------------------------------------
 
 -- 1. Wybierz nazwy i ceny produktów (baza northwind) o cenie jednostkowej pomiędzy 20.00 a 30.00, dla każdego produktu podaj dane adresowe dostawcy, interesują nas tylko produkty z kategorii ‘Meat/Poultry’
 
