@@ -333,31 +333,172 @@ AS t ON o.OrderID = t.OrderID
 --     [Order Details] AS od
 -- GROUP BY od.OrderID
 
-
-
--- V --------------------------------------------------
-
-
+-- V ------------------------------------------------------------
 -- 1. Wybierz nazwy i numery telefonów klientów, którzy kupowali produkty  z kategorii ‘Confections’
+USE Northwind
 
+SELECT
+    c.CompanyName
+    ,c.Phone
+    ,cc.CustomerID
+FROM
+    Customers AS c
+    INNER JOIN (SELECT
+        DISTINCT
+        o.CustomerID
+    FROM
+        Orders AS o
+        INNER JOIN (SELECT
+            DISTINCT
+            od.OrderID
+        FROM
+            [Order Details] AS od
+            INNER JOIN (SELECT
+                p.ProductID
+            FROM
+                Products AS p
+                INNER JOIN Categories AS c
+                ON p.CategoryID = c.CategoryID
+                    AND c.CategoryName = 'Confections'
+        ) AS con -- ProductsWithConfections
+            ON od.ProductID = con.ProductID
+) AS oc -- OrdersWithConfections
+        ON o.OrderID = oc.OrderID
+    ) AS cc -- CustomersWithConfections
+    ON c.CustomerID = cc.CustomerID
+
+
+-- ProductID's in Confecions category
+SELECT
+    p.ProductID
+FROM
+    Products AS p
+    INNER JOIN Categories AS c
+    ON p.CategoryID = c.CategoryID
+        AND c.CategoryName = 'Confections'
+
+--  OrderID's with confections
+SELECT
+    DISTINCT
+    od.OrderID
+FROM
+    [Order Details] AS od
+    INNER JOIN (SELECT
+        p.ProductID
+    FROM
+        Products AS p
+        INNER JOIN Categories AS c
+        ON p.CategoryID = c.CategoryID
+            AND c.CategoryName = 'Confections'
+        ) AS con
+    ON od.ProductID = con.ProductID
+
+
+--  Customers with confections
+SELECT
+    DISTINCT
+    o.CustomerID
+FROM
+    Orders AS o
+    INNER JOIN (SELECT
+        DISTINCT
+        od.OrderID
+    FROM
+        [Order Details] AS od
+        INNER JOIN (SELECT
+            p.ProductID
+        FROM
+            Products AS p
+            INNER JOIN Categories AS c
+            ON p.CategoryID = c.CategoryID
+                AND c.CategoryName = 'Confections'
+        ) AS con -- ProductsWithConfections
+        ON od.ProductID = con.ProductID
+) AS oc -- OrdersWithConfections
+    ON o.OrderID = oc.OrderID
 
 -- 2. Wybierz nazwy i numery telefonów klientów, którzy nie kupowali produktów z kategorii ‘Confections’
+USE Northwind
+
+SELECT
+    c.CompanyName
+    ,c.Phone
+FROM
+    Customers AS c
+    LEFT JOIN (SELECT
+        DISTINCT
+        o.CustomerID
+    FROM
+        Orders AS o
+        INNER JOIN (SELECT
+            DISTINCT
+            od.OrderID
+        FROM
+            [Order Details] AS od
+            INNER JOIN (SELECT
+                p.ProductID
+            FROM
+                Products AS p
+                INNER JOIN Categories AS c
+                ON p.CategoryID = c.CategoryID
+                    AND c.CategoryName = 'Confections'
+        ) AS con -- ProductsWithConfections
+            ON od.ProductID = con.ProductID
+) AS oc -- OrdersWithConfections
+        ON o.OrderID = oc.OrderID
+    ) AS cc -- CustomersWithConfections
+    ON c.CustomerID = cc.CustomerID
+WHERE cc.CustomerID IS NULL
+
 
 
 -- 3. Wybierz nazwy i numery telefonów klientów, którzy w 1997r nie kupowali produktów z kategorii ‘Confections’
+USE Northwind
+
+SELECT
+    c.CompanyName
+    ,c.Phone
+FROM
+    Customers AS c
+    LEFT JOIN (SELECT
+        DISTINCT
+        o.CustomerID
+    FROM
+        Orders AS o
+        INNER JOIN (SELECT
+            DISTINCT
+            od.OrderID
+        FROM
+            [Order Details] AS od
+            INNER JOIN (SELECT
+                p.ProductID
+            FROM
+                Products AS p
+                INNER JOIN Categories AS c
+                ON p.CategoryID = c.CategoryID
+                    AND c.CategoryName = 'Confections'
+        ) AS con -- ProductsWithConfections
+            ON od.ProductID = con.ProductID
+) AS oc -- OrdersWithConfections
+        ON o.OrderID = oc.OrderID
+            AND YEAR(o.OrderDate) = 1997
+    ) AS cc -- CustomersWithConfections
+    ON c.CustomerID = cc.CustomerID
+WHERE cc.CustomerID IS NULL
 
 
-
-----------------------------------------------------
+-- VI --------------------------------------------------
 
 -- 1. Napisz polecenie, które wyświetla listę dzieci będących członkami biblioteki
 -- (baza library). Interesuje nas imię, nazwisko, data urodzenia dziecka i adres zamieszkania dziecka.
+ 
+
 
 
 -- 2. Napisz polecenie, które wyświetla listę dzieci będących członkami biblioteki 
 --(baza library). Interesuje nas imię, nazwisko, data urodzenia dziecka, adres zamieszkania dziecka oraz imię i nazwisko rodzica.
 
-----------------------------------------------------
+-- VII --------------------------------------------------
 
 
 -- 1. Napisz polecenie, które wyświetla pracowników oraz ich podwładnych
@@ -370,7 +511,7 @@ AS t ON o.OrderID = t.OrderID
 -- (baza northwind)
 
 
-----------------------------------------------------
+-- VIII --------------------------------------------------
 
 
 -- 1. Podaj listę członków biblioteki mieszkających w Arizonie
