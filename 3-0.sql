@@ -587,8 +587,52 @@ WHERE ReportsTo IS NOT NULL
 -- 1. Podaj listę członków biblioteki mieszkających w Arizonie (AZ) mających  więcej niż dwoje dzieci zapisanych do biblioteki
 USE library
 
-
-
+SELECT
+    m.lastname
+    ,m.firstname
+    ,c.childCount
+    ,a.[state]
+FROM
+    adult AS a
+    JOIN member AS m
+    ON a.member_no = m.member_no
+    JOIN (SELECT
+        adult_member_no
+        ,COUNT(*) AS childCount
+    FROM
+        juvenile
+    GROUP BY adult_member_no
+    ) AS c
+    ON a.member_no = c.adult_member_no
+WHERE 
+    a.[state] = 'AZ'
+    AND c.childCount > 2
 
 -- 2. Podaj listę członków biblioteki mieszkających w Arizonie (AZ) którzy mają  więcej niż dwoje dzieci zapisanych do biblioteki 
 -- oraz takich którzy mieszkają w Kaliforni (CA) i mają więcej niż troje dzieci zapisanych do biblioteki
+USE library
+
+SELECT
+    m.lastname
+    ,m.firstname
+    ,c.childCount
+    ,a.[state]
+FROM
+    adult AS a
+    JOIN member AS m
+    ON a.member_no = m.member_no
+    JOIN (SELECT
+        adult_member_no
+        ,COUNT(*) AS childCount
+    FROM
+        juvenile
+    GROUP BY adult_member_no
+    ) AS c
+    ON a.member_no = c.adult_member_no
+WHERE (
+    a.[state] = 'AZ'
+    AND c.childCount > 2
+    ) OR (      
+    a.[state]= 'CA'
+    AND c.childCount > 3
+    )
