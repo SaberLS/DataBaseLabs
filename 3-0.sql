@@ -530,19 +530,65 @@ FROM
 -- VII --------------------------------------------------
 -- 1. Napisz polecenie, które wyświetla pracowników oraz ich podwładnych
 -- (baza northwind)
+USE Northwind
 
+SELECT
+    ReportsTo AS [Supervisor]
+    ,EmployeeID
+FROM
+    Employees
+
+
+-- supervisors
+SELECT
+    DISTINCT
+    ReportsTo
+FROM
+    Employees
+WHERE ReportsTo IS NOT NULL
 -- 2. Napisz polecenie, które wyświetla pracowników, którzy nie mają podwładnych
 -- (baza northwind)
+USE Northwind
+
+SELECT
+    *
+FROM
+    Employees AS e
+    LEFT JOIN (SELECT
+        DISTINCT
+        ReportsTo AS SupervisorID
+    FROM
+        Employees
+    WHERE ReportsTo IS NOT NULL
+    ) AS s
+    ON e.EmployeeID = s.SupervisorID
+WHERE s.SupervisorID IS NULL
+
+-- supervisors
+SELECT
+    DISTINCT
+    ReportsTo AS SupervisorID
+FROM
+    Employees
+WHERE ReportsTo IS NOT NULL
 
 -- 3. Napisz polecenie, które wyświetla pracowników, którzy mają podwładnych
--- (baza northwind)
+-- (baza northwind)]
+USE Northwind
 
+SELECT
+    DISTINCT
+    ReportsTo AS SupervisorID
+FROM
+    Employees
+WHERE ReportsTo IS NOT NULL
 
 -- VIII --------------------------------------------------
+-- 1. Podaj listę członków biblioteki mieszkających w Arizonie (AZ) mających  więcej niż dwoje dzieci zapisanych do biblioteki
+USE library
 
 
--- 1. Podaj listę członków biblioteki mieszkających w Arizonie
--- (AZ) mają  więcej niż dwoje dzieci zapisanych do biblioteki
+
 
 -- 2. Podaj listę członków biblioteki mieszkających w Arizonie (AZ) którzy mają  więcej niż dwoje dzieci zapisanych do biblioteki 
 -- oraz takich którzy mieszkają w Kaliforni (CA) i mają więcej niż troje dzieci zapisanych do biblioteki
