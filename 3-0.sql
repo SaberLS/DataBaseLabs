@@ -491,16 +491,43 @@ WHERE cc.CustomerID IS NULL
 
 -- 1. Napisz polecenie, które wyświetla listę dzieci będących członkami biblioteki
 -- (baza library). Interesuje nas imię, nazwisko, data urodzenia dziecka i adres zamieszkania dziecka.
- 
+USE library
 
+SELECT
+    m.lastname AS [childLastname]
+    ,m.firstname AS [childFirstname]
+    ,j.birth_date AS [childBirthdate]
+    ,a.state + ' ' + a.city + ' ' + a.zip + ' ' + a.street AS [Address]
+FROM
+    juvenile AS j
+    INNER JOIN member AS m
+    ON j.member_no = m.member_no
+    INNER JOIN adult AS a
+    ON j.adult_member_no = a.member_no  
 
 
 -- 2. Napisz polecenie, które wyświetla listę dzieci będących członkami biblioteki 
 --(baza library). Interesuje nas imię, nazwisko, data urodzenia dziecka, adres zamieszkania dziecka oraz imię i nazwisko rodzica.
+USE library
+
+SELECT
+    m.lastname AS [childLastname]
+    ,m.firstname AS [childFirstname]
+    ,j.birth_date AS [childBirthdate]
+    ,m2.lastname AS [parentLastname]
+    ,m2.firstname AS [parentFirstname]
+    ,a.state + ' ' + a.city + ' ' + a.zip + ' ' + a.street AS [Address]
+FROM
+    juvenile AS j
+    INNER JOIN member AS m
+    ON j.member_no = m.member_no
+    INNER JOIN adult AS a
+    ON j.adult_member_no = a.member_no
+    INNER JOIN member AS m2
+    ON a.member_no = m2.member_no
+
 
 -- VII --------------------------------------------------
-
-
 -- 1. Napisz polecenie, które wyświetla pracowników oraz ich podwładnych
 -- (baza northwind)
 
@@ -515,7 +542,6 @@ WHERE cc.CustomerID IS NULL
 
 
 -- 1. Podaj listę członków biblioteki mieszkających w Arizonie
-
 -- (AZ) mają  więcej niż dwoje dzieci zapisanych do biblioteki
 
 -- 2. Podaj listę członków biblioteki mieszkających w Arizonie (AZ) którzy mają  więcej niż dwoje dzieci zapisanych do biblioteki 
