@@ -28,23 +28,15 @@ FROM
 
 -- 3. Czy są jacyś klienci którzy nie złożyli żadnego zamówienia w 1997 roku, jeśli tak TO pokaż ich dane adresowe
 USE Northwind
+
 SELECT
-    c.CustomerID
-    ,c.Address
-    ,c.City
-    ,c.Country
-    ,c.PostalCode
+    c.CustomerID ,c.Address ,c.City ,c.Country ,c.PostalCode
 FROM
     Customers AS c
-    LEFT JOIN (SELECT
-        o.CustomerID
-    FROM
-        Orders AS o
-    WHERE YEAR(o.OrderDate) = 1997
-    GROUP BY o.CustomerID
-    ) AS o997
-    ON c.CustomerID = o997.CustomerID
-WHERE o997.CustomerID IS NULL
+    LEFT JOIN Orders AS o
+    ON c.CustomerID = o.CustomerID
+    AND YEAR(o.OrderDate) = 1997
+WHERE o.CustomerID IS NULL
 
 
 -- 4. Wybierz nazwy i numery telefonów dostawców, dostarczających produkty, których aktualnie nie ma w magazynie.
@@ -56,7 +48,8 @@ FROM
     Suppliers AS s
     JOIN Products AS p
     ON s.SupplierID = p.SupplierID
-        AND p.UnitsInStock = 0
+WHERE p
+.UnitsInStock = 0
 
 
 -- 5. Wybierz zamówienia złożone w marcu 1997. Dla każdego takiego zamówienia wyświetl jego numer, datę złożenia zamówienia oraz nazwę i numer telefonu klienta
@@ -102,10 +95,7 @@ FROM
 USE library
 
 SELECT
-    CASE 
-        WHEN DATEDIFF(DAY ,l.due_date, l.in_date) < 0 THEN 0
-        ELSE DATEDIFF(DAY ,l.due_date, l.in_date)  
-    END AS [dateDiff]
+    DATEDIFF(DAY, l.in_date, l.due_date) AS [dateDiff]
     ,l.fine_paid
     ,t.title
 FROM
@@ -113,6 +103,7 @@ FROM
     INNER JOIN title AS t
     ON l.title_no = t.title_no
         AND t.title = 'Tao Teh King'
+        AND DATEDIFF(DAY, l.in_date, l.due_date) > 0
 
 
 -- 4. Napisz polecenie które podaje listę książek (mumery ISBN) zarezerwowanych przez osobę o nazwisku: Stephen A. Graff
@@ -135,22 +126,32 @@ FROM
 USE Northwind
 
 SELECT
-    p.ProductName
+
+p.ProductName 
     ,p.UnitPrice
     ,s.Address
     ,s.City
     ,s.Country
     ,s.PostalCode
-FROM
-    Products AS p
-    LEFT JOIN Suppliers AS s
-    ON p.SupplierID = s.SupplierID
+FROM Products
+AS p
     INNER JOIN Categories AS c
     ON p.CategoryID = c.CategoryID
         AND c.CategoryName = 'Meat/Poultry'
+INNER JOIN Suppliers AS s
+    ON p.SupplierID = s.SupplierID
 WHERE 
     p.UnitPrice BETWEEN 20 AND 30
 
+
+SELECT
+    p.ProductName
+    ,p.UnitPrice
+FROM
+    Products AS p
+    INNER JOIN Categories AS c
+    ON p.CategoryID = c.CategoryID
+        AND c.CategoryName = 'Meat/Poultry'
 
 -- 2. Wybierz nazwy i ceny produktów z kategorii ‘Confections’ dla każdego produktu podaj nazwę dostawcy.
 USE Northwind
@@ -173,36 +174,46 @@ USE Northwind
 
 SELECT
     c.CompanyName
-    ,oc.OrderCount
+    ,COUNT(*) AS OrderCount
 FROM
     Customers AS c
-    LEFT JOIN ( SELECT
-        o.CustomerID
-        ,COUNT(*) AS [OrderCount]
-    FROM
-        Orders AS o
-    GROUP BY o.CustomerID
-    ) AS oc
-    ON c.CustomerID = oc.CustomerID
+LEFT JOIN Orders AS o
+    ON c.CustomerID = o.CustomerID
+GROUP BY c.CompanyName
 
 
 -- 4. Dla każdego klienta podaj liczbę złożonych przez niego zamówień w marcu 1997r
+USE Northwind
+
 SELECT
     c.CompanyName
-    ,oc.OrderCount
+    ,COUNT(*) AS OrderCount
 FROM
     Customers AS c
-    LEFT JOIN ( SELECT
-        o.CustomerID
-        ,COUNT(*) AS [OrderCount]
-    FROM
-        Orders AS o
-    WHERE 
-        YEAR(o.OrderDate) = 1997
+INNER JOIN Orders AS o
+    ON c.CustomerID = o.CustomerID
+        AND YEAR(o.OrderDate) = 1997
         AND MONTH(o.OrderDate) = 3
-    GROUP BY o.CustomerID
-    ) AS oc
-    ON c.CustomerID = oc.CustomerID
+GROUP BY c.CompanyName
+
+
+-- SELECT
+--    c.CompanyName
+--    ,oc.OrderCount
+-- FROM
+--    Customers AS c
+--    JOIN ( SELECT
+--        o.CustomerID
+--        ,COUNT(*) AS [OrderCount]
+--    FROM
+--        Orders AS o
+--    WHERE 
+--        YEAR(o.OrderDate) = 1997
+--        AND MONTH(o.OrderDate) = 3
+--    GROUP BY o.CustomerID
+--    HAVING COUNT(*) IS NOT NULL
+--    ) AS oc
+--    ON c.CustomerID = oc.CustomerID
 
 
 -- IV. --------------------------------------------------------------------------------------------------
