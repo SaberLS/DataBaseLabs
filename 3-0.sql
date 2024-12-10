@@ -35,7 +35,7 @@ FROM
     Customers AS c
     LEFT JOIN Orders AS o
     ON c.CustomerID = o.CustomerID
-    AND YEAR(o.OrderDate) = 1997
+        AND YEAR(o.OrderDate) = 1997
 WHERE o.CustomerID IS NULL
 
 
@@ -78,7 +78,7 @@ SELECT
 FROM
     juvenile AS j
     INNER JOIN member AS m
-    ON j.member_no = m.member_no 
+    ON j.member_no = m.member_no
 
 -- 2. Napisz polecenie, które podaje tytuły aktualnie wypożyczonych książek
 USE library
@@ -126,32 +126,25 @@ FROM
 USE Northwind
 
 SELECT
-
-p.ProductName 
+    p.ProductName 
     ,p.UnitPrice
     ,s.Address
     ,s.City
     ,s.Country
     ,s.PostalCode
-FROM Products
+FROM
+    Products
 AS p
     INNER JOIN Categories AS c
     ON p.CategoryID = c.CategoryID
         AND c.CategoryName = 'Meat/Poultry'
-INNER JOIN Suppliers AS s
+    INNER JOIN Suppliers AS s
     ON p.SupplierID = s.SupplierID
 WHERE 
     p.UnitPrice BETWEEN 20 AND 30
 
 
-SELECT
-    p.ProductName
-    ,p.UnitPrice
-FROM
-    Products AS p
-    INNER JOIN Categories AS c
-    ON p.CategoryID = c.CategoryID
-        AND c.CategoryName = 'Meat/Poultry'
+
 
 -- 2. Wybierz nazwy i ceny produktów z kategorii ‘Confections’ dla każdego produktu podaj nazwę dostawcy.
 USE Northwind
@@ -177,7 +170,7 @@ SELECT
     ,COUNT(*) AS OrderCount
 FROM
     Customers AS c
-LEFT JOIN Orders AS o
+    LEFT JOIN Orders AS o
     ON c.CustomerID = o.CustomerID
 GROUP BY c.CompanyName
 
@@ -190,7 +183,7 @@ SELECT
     ,COUNT(*) AS OrderCount
 FROM
     Customers AS c
-INNER JOIN Orders AS o
+    INNER JOIN Orders AS o
     ON c.CustomerID = o.CustomerID
         AND YEAR(o.OrderDate) = 1997
         AND MONTH(o.OrderDate) = 3
@@ -223,22 +216,14 @@ USE Northwind
 SELECT
     TOP 1
     s.CompanyName
-    ,oc.OrderCount
+    ,COUNT(*) AS [OrderCount]
 FROM
     Shippers AS s
-    LEFT JOIN
-    (SELECT
-        o.ShipVia
-        ,COUNT(*) AS [OrderCount]
-    FROM
-        Orders AS o
-    WHERE 
-        YEAR(o.OrderDate) = 1997
-    GROUP BY o.ShipVia
-    )
-AS oc
-    ON s.ShipperID = oc.ShipVia
-ORDER BY oc.OrderCount DESC
+    LEFT JOIN Orders AS o
+    ON s.ShipperID = o.ShipVia
+        AND YEAR(o.OrderDate) = 1997
+GROUP BY s.CompanyName
+ORDER BY OrderCount DESC
 
 
 -- 2. Dla każdego zamówienia podaj wartość zamówionych produktów. Zbiór wynikowy powinien zawierać nr zamówienia, datę zamówienia, nazwę klienta oraz wartość zamówionych produktów
@@ -248,54 +233,37 @@ SELECT
     o.OrderId
     ,o.OrderDate
     ,c.CompanyName
-    ,t.TotalValue
+    ,CONVERT(
+        MONEY
+        ,SUM((od.UnitPrice * od.Quantity) * (1 - od.Discount))
+    ) AS TotalValue
 FROM
     Orders AS o
-    LEFT JOIN(SELECT
-        od.OrderID
-        ,CONVERT(
-            MONEY
-            ,SUM((od.UnitPrice * od.Quantity) * (1 - od.Discount))
-        ) AS TotalValue
-    FROM
-        [Order Details] AS od
-    GROUP BY od.OrderID) AS t
-    ON o.OrderID = t.OrderID
+    LEFT JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
     LEFT JOIN Customers AS c
     ON o.CustomerID = c.CustomerID
-
+GROUP BY o.OrderId, o.OrderDate, c.CompanyName
 
 -- 3. Dla każdego zamówienia podaj jego pełną wartość (wliczając opłatę za przesyłkę). Zbiór wynikowy powinien zawierać nr zamówienia, datę zamówienia, nazwę klienta oraz pełną wartość zamówienia
 USE Northwind
 
 SELECT
-    o1.OrderID
-    ,o1.OrderDate
+    o.OrderID
+    ,o.OrderDate
     ,c.CompanyName
-    ,tp.TotalPrice
+    ,CONVERT(
+        MONEY
+        ,SUM((od.UnitPrice * od.Quantity) * (1 - od.Discount) + o.Freight)
+    ) AS TotalPrice
 FROM
-    Orders AS o1
-    LEFT JOIN(
-    SELECT
-        o.OrderID
-        ,SUM(t.TotalValue + o.Freight) AS TotalPrice
-    FROM
-        Orders AS o
-        LEFT JOIN
-        (SELECT
-            od.OrderID
-        ,CONVERT(
-            MONEY
-            ,SUM((od.UnitPrice * od.Quantity) * (1 - od.Discount))
-        ) AS TotalValue
-        FROM
-            [Order Details] AS od
-        GROUP BY od.OrderID)
-AS t ON o.OrderID = t.OrderID
-    GROUP BY o.OrderID
-) AS tp ON o1.OrderID = tp.OrderID
+    Orders AS o
     LEFT JOIN Customers AS c
-    ON o1.CustomerID = c.CustomerID
+    ON o.CustomerID = c.CustomerID
+    LEFT JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
+GROUP BY o.OrderID, o.OrderDate, c.CompanyName
+
 
 -- SELECT
 --     o .OrderID
@@ -349,34 +317,53 @@ AS t ON o.OrderID = t.OrderID
 USE Northwind
 
 SELECT
+    DISTINCT
     c.CompanyName
     ,c.Phone
-    ,cc.CustomerID
+    ,c.CustomerID
 FROM
     Customers AS c
-    INNER JOIN (SELECT
-        DISTINCT
-        o.CustomerID
-    FROM
-        Orders AS o
-        INNER JOIN (SELECT
-            DISTINCT
-            od.OrderID
-        FROM
-            [Order Details] AS od
-            INNER JOIN (SELECT
-                p.ProductID
-            FROM
-                Products AS p
-                INNER JOIN Categories AS c
-                ON p.CategoryID = c.CategoryID
-                    AND c.CategoryName = 'Confections'
-        ) AS con -- ProductsWithConfections
-            ON od.ProductID = con.ProductID
-) AS oc -- OrdersWithConfections
-        ON o.OrderID = oc.OrderID
-    ) AS cc -- CustomersWithConfections
-    ON c.CustomerID = cc.CustomerID
+    JOIN Orders AS o
+    ON c.CustomerID = o.CustomerID
+    JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
+    JOIN Products AS p
+    ON od.ProductID = p.ProductID
+    JOIN Categories AS ca
+    ON p.CategoryID = ca.CategoryID
+        AND CategoryName = 'Confections'
+
+
+
+-- SELECT
+--     c.CompanyName
+--     ,c.Phone
+--     ,cc.CustomerID
+-- FROM
+--     Customers AS c
+--     INNER JOIN (SELECT
+--        DISTINCT
+--        o.CustomerID
+--     FROM
+--         Orders AS o
+--         INNER JOIN (SELECT
+--             DISTINCT
+--             od.OrderID
+--         FROM
+--             [Order Details] AS od
+--             INNER JOIN (SELECT
+--                 p.ProductID
+--             FROM
+--                 Products AS p
+--                 INNER JOIN Categories AS c
+--                 ON p.CategoryID = c.CategoryID
+--                     AND c.CategoryName = 'Confections'
+--         ) AS con -- ProductsWithConfections
+--             ON od.ProductID = con.ProductID
+-- ) AS oc -- OrdersWithConfections-- 
+--        ON o.OrderID = oc.OrderID
+--    ) AS cc -- CustomersWithConfections
+--    ON c.CustomerID = cc.CustomerID
 
 
 -- ProductID's in Confecions category
@@ -435,6 +422,26 @@ SELECT
     c.CompanyName
     ,c.Phone
 FROM
+    Categories AS ca
+    JOIN Products AS p
+    ON ca.CategoryID = p.CategoryID
+        AND CategoryName = 'Confections'
+    JOIN [Order Details] AS od
+    ON p.ProductID = od.ProductID
+    JOIN Orders AS o
+    ON od.OrderID = o.OrderID
+    RIGHT JOIN Customers AS c
+    ON o.CustomerID = c.CustomerID
+WHERE ca.CategoryID IS NULL
+
+
+
+
+
+SELECT
+    c.CompanyName
+    ,c.Phone
+FROM
     Customers AS c
     LEFT JOIN (SELECT
         DISTINCT
@@ -465,6 +472,26 @@ WHERE cc.CustomerID IS NULL
 
 -- 3. Wybierz nazwy i numery telefonów klientów, którzy w 1997r nie kupowali produktów z kategorii ‘Confections’
 USE Northwind
+
+SELECT
+    c.CompanyName
+    ,c.Phone
+FROM
+    Categories AS ca
+    JOIN Products AS p
+    ON ca.CategoryID = p.CategoryID
+        AND CategoryName = 'Confections'
+    JOIN [Order Details] AS od
+    ON p.ProductID = od.ProductID
+    JOIN Orders AS o
+    ON od.OrderID = o.OrderID
+        AND YEAR(o.OrderDate) = 1997
+    RIGHT JOIN Customers AS c
+    ON o.CustomerID = c.CustomerID
+WHERE ca.CategoryID IS NULL
+
+
+
 
 SELECT
     c.CompanyName
@@ -514,7 +541,7 @@ FROM
     INNER JOIN member AS m
     ON j.member_no = m.member_no
     INNER JOIN adult AS a
-    ON j.adult_member_no = a.member_no  
+    ON j.adult_member_no = a.member_no
 
 
 -- 2. Napisz polecenie, które wyświetla listę dzieci będących członkami biblioteki 
@@ -565,63 +592,58 @@ SELECT
     *
 FROM
     Employees AS e
-    LEFT JOIN (SELECT
-        DISTINCT
-        ReportsTo AS SupervisorID
-    FROM
-        Employees
-    WHERE ReportsTo IS NOT NULL
-    ) AS s
-    ON e.EmployeeID = s.SupervisorID
-WHERE s.SupervisorID IS NULL
-
--- supervisors
-SELECT
-    DISTINCT
-    ReportsTo AS SupervisorID
-FROM
-    Employees
-WHERE ReportsTo IS NOT NULL
+    LEFT JOIN Employees AS e1
+    ON e.EmployeeID = e1.ReportsTo
+WHERE e1.ReportsTo IS NULL
 
 -- 3. Napisz polecenie, które wyświetla pracowników, którzy mają podwładnych
 -- (baza northwind)]
 USE Northwind
 
 SELECT
-    DISTINCT
-    ReportsTo AS SupervisorID
+    e.EmployeeID
 FROM
-    Employees
-WHERE ReportsTo IS NOT NULL
+    Employees AS e
+    JOIN Employees AS e1
+    ON e.ReportsTo = e1.EmployeeID
+
+
 
 -- VIII --------------------------------------------------
 -- 1. Podaj listę członków biblioteki mieszkających w Arizonie (AZ) mających  więcej niż dwoje dzieci zapisanych do biblioteki
 USE library
 
 SELECT
-    m.lastname
-    ,m.firstname
-    ,c.childCount
-    ,a.[state]
+    m.firstname
+    ,m.lastname
+    ,COUNT(*) AS ChildCount
 FROM
     adult AS a
+    JOIN juvenile AS j
+    ON a.member_no = j.adult_member_no
+        AND a.[state] = 'AZ'
     JOIN member AS m
     ON a.member_no = m.member_no
-    JOIN (SELECT
-        adult_member_no
-        ,COUNT(*) AS childCount
-    FROM
-        juvenile
-    GROUP BY adult_member_no
-    ) AS c
-    ON a.member_no = c.adult_member_no
-WHERE 
-    a.[state] = 'AZ'
-    AND c.childCount > 2
+GROUP BY m.firstname ,m.lastname
+HAVING COUNT(*) > 2
 
 -- 2. Podaj listę członków biblioteki mieszkających w Arizonie (AZ) którzy mają  więcej niż dwoje dzieci zapisanych do biblioteki 
 -- oraz takich którzy mieszkają w Kaliforni (CA) i mają więcej niż troje dzieci zapisanych do biblioteki
 USE library
+
+SELECT
+    m.firstname
+    ,m.lastname
+    ,COUNT(*) AS ChildCount
+FROM
+    adult AS a
+    JOIN member AS m
+    ON a.member_no = m.member_no
+    JOIN juvenile AS j
+    ON a.member_no = j.adult_member_no
+        AND a.[state] IN ('AZ','CA')
+GROUP BY m.firstname ,m.lastname
+HAVING COUNT(*) > 2
 
 SELECT
     m.lastname
