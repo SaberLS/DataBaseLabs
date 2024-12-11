@@ -112,16 +112,126 @@ GROUP BY s.CompanyName
 
 -- III. --------------------------------------------------
 -- 1. Dla każdej kategorii produktu (nazwa), podaj łączną liczbę zamówionych przez klientów jednostek towarów z tej kategorii. 
+SELECT
+    c.CategoryName
+    ,SUM(od.Quantity) AS Quantity
+FROM
+    Categories AS c
+    JOIN Products AS p
+    ON c.CategoryID= p.CategoryID
+    JOIN [Order Details]AS od
+    ON p.ProductID = od.ProductID
+GROUP BY c.CategoryName
+
 -- 2. Dla każdej kategorii produktu (nazwa), podaj łączną liczbę zamówionych w 1997r jednostek towarów z tej kategorii. 
+SELECT
+    c.CategoryName
+    ,SUM(od.Quantity) AS Quantity
+FROM
+    Categories AS c
+    JOIN Products AS p
+    ON c.CategoryID= p.CategoryID
+    JOIN [Order Details] AS od
+    ON p.ProductID = od.ProductID
+    JOIN Orders AS o
+    ON od.OrderID = o.OrderID
+        AND YEAR(o.OrderDate) = 1997
+GROUP BY c.CategoryName
+
+
 -- 3. Dla każdej kategorii produktu (nazwa), podaj łączną wartość zamówionych towarów z tej kategorii.
+SELECT
+    c.CategoryName
+    ,CONVERT(
+        MONEY
+        ,SUM(od.UnitPrice * od.Quantity)
+    ) AS TotalValue
+FROM
+    Categories AS c
+    JOIN Products AS p
+    ON c.CategoryID= p.CategoryID
+    JOIN [Order Details] AS od
+    ON p.ProductID = od.ProductID
+    JOIN Orders AS o
+    ON od.OrderID = o.OrderID
+GROUP BY c.CategoryName
+
 
 -- IV. --------------------------------------------------
 -- 1. Dla każdego przewoźnika (nazwa) podaj liczbę zamówień które przewieźli w 1997r 
--- 2. Który z przewoźników był najaktywniejszy (przewiózł największą liczbę zamówień) w 1997r, podaj nazwę tego przewoźnika 
--- 3. Dla każdego przewoźnika podaj łączną wartość "opłat za przesyłkę" przewożonych przez niego zamówień od '1998-05-03' do '1998-05-29' 
--- 4. Dla każdego pracownika (imię i nazwisko) podaj łączną wartość zamówień obsłużonych przez tego pracownika w maju 1996 
--- 5. Który z pracowników obsłużył największą liczbę zamówień w 1996r, podaj imię i nazwisko takiego pracownika 
+SELECT
+    s.CompanyName
+    ,COUNT(o.ShipVia) AS OrderCount
+FROM
+    Orders AS o
+    JOIN Shippers AS s
+    ON o.ShipVia = s.ShipperID
+WHERE YEAR(o.OrderDate) = 1997
+GROUP BY s.CompanyName
+
+-- 2. Który z przewoźników był najaktywniejszy (przewiózł największą liczbę zamówień) w 1997r, podaj nazwę tego przewoźnika
+SELECT
+    TOP 1
+    s.CompanyName
+FROM
+    Orders AS o
+    JOIN Shippers AS s
+    ON o.ShipVia = s.ShipperID
+WHERE YEAR(o.OrderDate) = 1997
+GROUP BY s.CompanyName
+ORDER BY COUNT(o.ShipVia) DESC
+
+-- 3. Dla każdego przewoźnika podaj łączną wartość "opłat za przesyłkę" przewożonych przez niego zamówień od '1998-05-03' do '1998-05-29'
+SELECT
+    s.CompanyName
+    ,SUM(o.Freight) AS SumFreight
+FROM
+    Orders AS o
+    JOIN Shippers AS s
+    ON o.ShipVia = s.ShipperID
+WHERE o.OrderDate BETWEEN '1998-05-03' AND '1998-05-29'
+GROUP BY s.CompanyName
+
+-- 4. Dla każdego pracownika (imię i nazwisko) podaj łączną wartość zamówień obsłużonych przez tego pracownika w maju 1996
+SELECT
+    e.FirstName
+    ,e.LastName
+    ,COUNT(o.EmployeeID) AS OrdersCount
+FROM
+    Employees AS e
+    LEFT JOIN Orders AS o
+    ON e.EmployeeID = o.EmployeeID
+GROUP BY e.FirstName ,e.LastName
+
+
+-- 5. Który z pracowników obsłużył największą liczbę zamówień w 1996r, podaj imię i nazwisko takiego pracownika
+SELECT
+    TOP 1
+    e.FirstName
+    ,e.LastName
+FROM
+    Employees AS e
+    LEFT JOIN Orders AS o
+    ON e.EmployeeID = o.EmployeeID
+GROUP BY e.FirstName ,e.LastName
+ORDER BY COUNT(o.EmployeeID)
+
+
 -- 6. Który z pracowników był najaktywniejszy (obsłużył zamówienia o największej wartości) w 1996r, podaj imię i nazwisko takiego pracownika
+SELECT
+    TOP 1
+    e.FirstName
+    ,e.LastName
+FROM
+    Employees AS e
+    LEFT JOIN Orders AS o
+    ON e.EmployeeID = o.EmployeeID
+    JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
+        AND YEAR(o.OrderDate) = 1996
+GROUP BY e.FirstName ,e.LastName
+ORDER BY SUM(od.UnitPrice * od.Quantity *
+(1 - od.Discount)) DESC
 
 -- V. --------------------------------------------------
 -- 1. Dla każdego pracownika (imię i nazwisko) podaj łączną wartość zamówień obsłużonych przez tego pracownika Ogranicz wynik tylko do pracowników 
