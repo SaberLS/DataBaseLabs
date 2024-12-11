@@ -234,7 +234,68 @@ ORDER BY SUM(od.UnitPrice * od.Quantity *
 (1 - od.Discount)) DESC
 
 -- V. --------------------------------------------------
--- 1. Dla każdego pracownika (imię i nazwisko) podaj łączną wartość zamówień obsłużonych przez tego pracownika Ogranicz wynik tylko do pracowników 
--- a) którzy mają podwładnych 
+-- 1. Dla każdego pracownika (imię i nazwisko) podaj łączną wartość zamówień obsłużonych przez tego pracownika Ogranicz wynik tylko do pracowników
+-- a) którzy mają podwładnych
+SELECT
+    e.FirstName
+    ,e.LastName
+    ,Count(*) AS OrderCount
+FROM
+    (SELECT
+        DISTINCT
+        e1.FirstName
+        ,e1.LastName
+        ,e1.EmployeeID
+    FROM
+        Employees AS e1
+        INNER JOIN Employees e2
+        ON e1.EmployeeID = e2.ReportsTo
+    GROUP BY e1.EmployeeID, e1.FirstName, e1.LastName
+    ) AS e
+    INNER JOIN Orders AS o
+    ON e.EmployeeID = o.EmployeeID
+GROUP BY e.FirstName, e.LastName
+
+
+SELECT
+    Count(*)
+FROM
+    Orders
+WHERE EmployeeID = 2
+
+SELECT
+    Count(*)
+FROM
+    Orders
+WHERE EmployeeID = 5
+
+
 -- b) którzy nie mają podwładnych
+USE Northwind
+SELECT
+    e.EmployeeID
+    ,Count(*) AS OrderCount
+FROM
+    Employees AS e
+    LEFT JOIN Employees AS e1
+    ON e.EmployeeID = e1.ReportsTo
+    JOIN Orders AS o
+    ON e.EmployeeID = o.EmployeeID
+        AND e1.ReportsTo IS NULL
+GROUP BY e.EmployeeID
+
+
 -- 2. Napisz polecenie, które wyświetla klientów z Francji którzy w 1998r złożyli więcej niż dwa zamówienia oraz klientów z Niemiec którzy w 1997r złożyli więcej niż trzy zamówienia
+SELECT
+    c.CustomerID
+    ,COUNT(*) AS OrderCount
+FROM
+    Customers AS c
+    JOIN Orders AS o
+    ON c.CustomerID = o.CustomerID
+WHERE (c.Country= 'Germany' AND YEAR(o.OrderDate) = 1997)
+    OR (c.Country= 'France' AND YEAR(o.OrderDate) = 1998)
+GROUP BY c.CustomerID, c.Country
+HAVING 
+    (c.Country = 'France' AND COUNT(*) > 3)
+    OR (c.Country = 'Germany' AND COUNT(*) > 2)
