@@ -46,9 +46,69 @@ GROUP BY o.OrderID, e.FirstName ,e.LastName
 
 
 -- II. --------------------------------------------------
--- 1. Podaj nazwy przewoźników, którzy w marcu 1998 przewozili produkty z kategorii 'Meat/Poultry' 
--- 2. Podaj nazwy przewoźników, którzy w marcu 1997r nie przewozili produktów z kategorii 'Meat/Poultry' 
+-- 1. Podaj nazwy przewoźników, którzy w marcu 1998 przewozili produkty z kategorii 'Meat/Poultry'
+SELECT
+    DISTINCT
+    s.CompanyName
+FROM
+    Shippers AS s
+    INNER JOIN Orders AS o
+    ON s.ShipperID = o.ShipVia
+        AND YEAR(o.OrderDate) = 1998
+        AND MONTH(o.OrderDate) = 3
+    JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
+    JOIN Products AS p
+    ON od.ProductID = p.ProductID
+    INNER JOIN Categories AS c
+    ON p.CategoryID = c.CategoryID
+        AND c.CategoryName = 'Meat/Poultry'
+
+-- 2. Podaj nazwy przewoźników, którzy w marcu 1997r nie przewozili produktów z kategorii 'Meat/Poultry'
+SELECT
+    s1.CompanyName
+FROM
+    Shippers AS s
+    INNER JOIN Orders AS o
+    ON s.ShipperID = o.ShipVia
+        AND YEAR(o.OrderDate) = 1997
+        AND MONTH(o.OrderDate) = 3
+    JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
+    JOIN Products AS p
+    ON od.ProductID = p.ProductID
+    JOIN Categories AS c
+    ON p.CategoryID = c.CategoryID
+        AND c.CategoryName = 'Meat/Poultry'
+    RIGHT JOIN Shippers AS s1
+    ON s.ShipperID = s1.ShipperID
+WHERE s.ShipperID IS NULL
+
+
+
+
 -- 3. Dla każdego przewoźnika podaj wartość produktów z kategorii 'Meat/Poultry' które ten przewoźnik przewiózł w marcu 1997
+SELECT
+    s.CompanyName
+    ,CONVERT(
+        MONEY
+        ,SUM(od.UnitPrice * od.Quantity *(1 - od.Discount))
+    ) AS TotalValue
+FROM
+    Shippers AS s
+    INNER JOIN Orders AS o
+    ON s.ShipperID = o.ShipVia
+        AND YEAR(o.OrderDate) = 1997
+        AND MONTH(o.OrderDate) = 3
+    JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
+    JOIN Products AS p
+    ON od.ProductID = p.ProductID
+    JOIN Categories AS c
+    ON p.CategoryID = c.CategoryID
+        AND c.CategoryName = 'Meat/Poultry'
+GROUP BY s.CompanyName
+
 
 -- III. --------------------------------------------------
 -- 1. Dla każdej kategorii produktu (nazwa), podaj łączną liczbę zamówionych przez klientów jednostek towarów z tej kategorii. 
