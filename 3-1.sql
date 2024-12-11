@@ -1,7 +1,48 @@
+USE Northwind
+
 -- I. --------------------------------------------------
--- 1. Dla każdego zamówienia podaj łączną liczbę zamówionych jednostek towaru oraz nazwę klienta. 
+-- 1. Dla każdego zamówienia podaj łączną liczbę zamówionych jednostek towaru oraz nazwę klienta.
+SELECT
+    o.OrderID
+    ,c.CompanyName
+    ,SUM(od.Quantity) AS Quantity
+FROM
+    Orders AS o
+    JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
+    JOIN Customers AS c
+    ON o.CustomerID = c.CustomerID
+GROUP BY o.OrderID, c.CompanyName
+
 -- 2. Dla każdego zamówienia podaj łączną wartość zamówionych produktów (wartość zamówienia bez opłaty za przesyłkę) oraz nazwę klienta. 
+SELECT
+    o.OrderId
+    ,CONVERT(
+        MONEY
+        ,SUM(od.UnitPrice * od.Quantity * (1 - od.Discount))
+    ) AS TotalValue
+FROM
+    Orders AS o
+    LEFT JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
+GROUP BY o.OrderId
+
 -- 3. Dla każdego zamówienia podaj łączną wartość tego zamówienia (wartość zamówienia wraz z opłatą za przesyłkę) oraz nazwę klienta. . Zmodyfikuj poprzednie przykłady tak żeby dodać jeszcze imię i nazwisko pracownika obsługującego zamówień
+SELECT
+    o.OrderId
+    ,e.FirstName
+    ,e.LastName
+    ,CONVERT(
+        MONEY
+        ,SUM(od.UnitPrice * od.Quantity * (1 - od.Discount) + o.Freight)
+    ) AS TotalValue
+FROM
+    Orders AS o
+    LEFT JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
+    LEFT JOIN Employees AS e
+    ON o.EmployeeID = e.EmployeeID
+GROUP BY o.OrderID, e.FirstName ,e.LastName
 
 
 -- II. --------------------------------------------------
