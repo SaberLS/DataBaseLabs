@@ -1,14 +1,86 @@
 -- I --------------------------------------------------
--- 1. Podaj łączną wartość zamówienia o numerze 10250 (uwzględnij cenę za przesyłkę) 
--- 2. Podaj łączną wartość każdego zamówienia (uwzględnij cenę za przesyłkę) 
--- 3. Dla każdego produktu podaj maksymalną wartość zakupu tego produktu 
--- 4. Dla każdego produktu podaj maksymalną wartość zakupu tego produktu w 1997r 1
+-- 1. Podaj łączną wartość zamówienia o numerze 10250 (uwzględnij cenę za przesyłkę)
+
+
+SELECT
+    SUM(od.UnitPrice * od.Quantity * (1 - od.Discount) + o
+.Freight)  AS Price
+-- źle to jest bo się freight dodaje do każdego od.OrderID czyli nalicza do jednego zamówienia kilka razy
+FROM
+    Orders AS o
+    JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
+        AND o.OrderID = 10250
+
+SELECT
+    (SELECT
+        SUM(od.UnitPrice * od.Quantity * (1 - od.Discount))
+    FROM
+        [Order Details] AS od
+    WHERE o.OrderID = od.OrderID  
+        ) + o.Freight AS Price
+FROM
+    Orders AS o
+WHERE o.OrderID = 10250
+
+-- 2. Podaj łączną wartość każdego zamówienia (uwzględnij cenę za przesyłkę)
+SELECT
+    CONVERT(
+        MONEY,
+    (SELECT
+        SUM(od.UnitPrice * od.Quantity * (1 - od.Discount))
+    FROM
+        [Order Details] AS od
+    WHERE o.OrderID = od.OrderID  
+    ) + o.Freight ) AS Price
+FROM
+    Orders AS o
+
+-- 3. Dla każdego produktu podaj maksymalną wartość zakupu tego produktu
+SELECT
+    p.ProductName
+    ,(SELECT
+        TOP 1
+        SUM(od.UnitPrice * od.Quantity * (1 - od.Discount)) AS [Value]
+    FROM
+        [Order Details] AS od
+    WHERE p.ProductID = od.ProductID
+    GROUP BY od.OrderID
+    ORDER BY [Value]
+    ) AS [MaxValue]
+FROM
+    Products AS p
+ORDER BY [MaxValue] DESC
+
+-- 4. Dla każdego produktu podaj maksymalną wartość zakupu tego produktu w 1997r
+SELECT
+    p.ProductName
+    ,(SELECT
+        TOP 1
+        SUM(od.UnitPrice * od.Quantity * (1 - od.Discount)) AS [Value]
+    FROM
+        [Order Details] AS od
+        JOIN Orders AS o
+        ON o.OrderID = od.OrderID
+            AND YEAR(o.OrderDate) = 1997
+    WHERE p.ProductID = od.ProductID
+    GROUP BY od.OrderID
+    ORDER BY [Value]
+    ) AS [MaxValue]
+FROM
+    Products AS p
+ORDER BY [MaxValue] DESC
+
 -- II --------------------------------------------------
--- 1. Dla każdego klienta podaj łączną wartość jego zamówień (bez opłaty za przesyłkę) z 1996r 
--- 2. Dla każdego klienta podaj łączną wartość jego zamówień (uwzględnij opłatę za przesyłkę) z 1996r 
--- 3. Dla każdego klienta podaj maksymalną wartość zamówienia złożonego przez tego klienta w 1997r 
+-- 1. Dla każdego klienta podaj łączną wartość jego zamówień (bez opłaty za przesyłkę) z 1996r
+
+-- 2. Dla każdego klienta podaj łączną wartość jego zamówień (uwzględnij opłatę za przesyłkę) z 1996r
+
+-- 3. Dla każdego klienta podaj maksymalną wartość zamówienia złożonego przez tego klienta w 1997r
+
 -- III -------------------------------------------------- 
--- 1. Dla każdego dorosłego członka biblioteki podaj jego imię, nazwisko oraz liczbę jego dzieci. 
+-- 1. Dla każdego dorosłego członka biblioteki podaj jego imię, nazwisko oraz liczbę jego dzieci.
+
 -- 2. Dla każdego dorosłego członka biblioteki podaj jego imię, nazwisko, liczbę jego dzieci, liczbę zarezerwowanych książek oraz liczbę wypożyczonych książek. 
 -- 3. Dla każdego dorosłego członka biblioteki podaj jego imię, nazwisko, liczbę jego dzieci, oraz liczbę książek zarezerwowanych i wypożyczonych przez niego i jego dzieci. 
 -- 4. Dla każdego tytułu książki podaj ile razy ten tytuł był wypożyczany w 2001r 
