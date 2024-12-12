@@ -1,0 +1,39 @@
+-- I --------------------------------------------------
+-- 1. Podaj łączną wartość zamówienia o numerze 10250 (uwzględnij cenę za przesyłkę) 
+-- 2. Podaj łączną wartość każdego zamówienia (uwzględnij cenę za przesyłkę) 
+-- 3. Dla każdego produktu podaj maksymalną wartość zakupu tego produktu 
+-- 4. Dla każdego produktu podaj maksymalną wartość zakupu tego produktu w 1997r 1
+-- II --------------------------------------------------
+-- 1. Dla każdego klienta podaj łączną wartość jego zamówień (bez opłaty za przesyłkę) z 1996r 
+-- 2. Dla każdego klienta podaj łączną wartość jego zamówień (uwzględnij opłatę za przesyłkę) z 1996r 
+-- 3. Dla każdego klienta podaj maksymalną wartość zamówienia złożonego przez tego klienta w 1997r 
+-- III -------------------------------------------------- 
+-- 1. Dla każdego dorosłego członka biblioteki podaj jego imię, nazwisko oraz liczbę jego dzieci. 
+-- 2. Dla każdego dorosłego członka biblioteki podaj jego imię, nazwisko, liczbę jego dzieci, liczbę zarezerwowanych książek oraz liczbę wypożyczonych książek. 
+-- 3. Dla każdego dorosłego członka biblioteki podaj jego imię, nazwisko, liczbę jego dzieci, oraz liczbę książek zarezerwowanych i wypożyczonych przez niego i jego dzieci. 
+-- 4. Dla każdego tytułu książki podaj ile razy ten tytuł był wypożyczany w 2001r 
+-- 5. Dla każdego tytułu książki podaj ile razy ten tytuł był wypożyczany w 2002r 
+-- IV -------------------------------------------------- 
+-- 1. Czy są jacyś klienci którzy nie złożyli żadnego zamówienia w 1997 roku, jeśli tak TO pokaż ich dane adresowe 
+-- 2. Wybierz nazwy i numery telefonów klientów , którym w 1997 roku przesyłki dostarczała firma United Package. 
+-- 3. Wybierz nazwy i numery telefonów klientów , którym w 1997 roku przesyłek nie dostarczała firma United Package. 
+-- 4. Wybierz nazwy i numery telefonów klientów, którzy kupowali produkty z kategorii Confections. 
+-- 5. Wybierz nazwy i numery telefonów klientów, którzy nie kupowali produktów z kategorii Confections. 
+-- 6. Wybierz nazwy i numery telefonów klientów, którzy w 1997r nie kupowali produktów z kategorii Confections. 
+-- V -------------------------------------------------- 
+-- 1. Podaj wszystkie produkty których cena jest mniejsza niż średnia cena produktu 
+-- 2. Podaj wszystkie produkty których cena jest mniejsza niż średnia cena produktu danej kategorii 
+-- 3. Dla każdego produktu podaj jego nazwę, cenę, średnią cenę wszystkich produktów oraz różnicę między ceną produktu a średnią ceną wszystkich produktów 
+-- 4. Dla każdego produktu podaj jego nazwę kategorii, nazwę produktu, cenę, średnią cenę wszystkich produktów danej kategorii oraz różnicę między ceną produktu a średnią ceną wszystkich produktów danej kategorii 
+-- VI -------------------------------------------------- 
+-- 1. Podaj produkty kupowane przez więcej niż jednego klienta 
+-- 2. Podaj produkty kupowane w 1997r przez więcej niż jednego klienta 
+-- 3. Podaj nazwy klientów którzy w 1997r kupili co najmniej dwa różne produkty z kategorii 'Confections'
+
+-- VII -------------------------------------------------- 
+-- 1. Dla każdego pracownika (imię i nazwisko) podaj łączną wartość zamówień obsłużonych przez tego pracownika, przy obliczaniu wartości zamówień uwzględnij cenę za przesyłkę 
+-- 2. Który z pracowników był najaktywniejszy (obsłużył zamówienia o największej wartości) w 1997r, podaj imię i nazwisko takiego pracownika 
+-- 3. Ogranicz wynik z pkt 1 tylko do pracowników 
+-- 	a) którzy mają podwładnych 
+-- 	b) którzy nie mają podwładnych 
+-- 4. Zmodyfikuj rozwiązania z pkt 3 tak aby dla pracowników pokazać jeszcze datę ostatnio obsłużonego zamówienia
