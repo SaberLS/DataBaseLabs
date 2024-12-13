@@ -1,3 +1,4 @@
+USE Northwind
 -- I --------------------------------------------------
 -- 1. Podaj łączną wartość zamówienia o numerze 10250 (uwzględnij cenę za przesyłkę)
 
@@ -349,8 +350,47 @@ GROUP BY p.ProductID, p.ProductName, p.CategoryID, p.UnitPrice
 
 
 -- VI -------------------------------------------------- 
--- 1. Podaj produkty kupowane przez więcej niż jednego klienta 
--- 2. Podaj produkty kupowane w 1997r przez więcej niż jednego klienta 
+-- 1. Podaj produkty kupowane przez więcej niż jednego klienta
+-- ?????????????????
+SELECT
+    DISTINCT
+    od.ProductID
+FROM
+    [Order Details] AS od
+WHERE od.ProductID IN (
+    SELECT
+    od1.ProductID
+FROM
+    Orders AS o
+    JOIN [Order Details] AS od1
+    ON o.OrderID = od1.OrderID
+        AND od1.ProductID = od.ProductID
+GROUP BY o.CustomerID, od1.ProductID
+HAVING COUNT(*) > 1
+)
+-- ?????????????????
+
+
+-- 2. Podaj produkty kupowane w 1997r przez więcej niż jednego klienta
+-- ?????????????????
+SELECT
+    DISTINCT
+    od.ProductID
+FROM
+    [Order Details] AS od
+WHERE od.ProductID IN (
+    SELECT
+    od1.ProductID
+FROM
+    Orders AS o
+    JOIN [Order Details] AS od1
+    ON o.OrderID = od1.OrderID
+        AND od1.ProductID = od.ProductID
+        AND YEAR(o.OrderDate) = 1997
+GROUP BY o.CustomerID, od1.ProductID
+HAVING COUNT(*) > 1
+)
+-- ?????????????????
 -- 3. Podaj nazwy klientów którzy w 1997r kupili co najmniej dwa różne produkty z kategorii 'Confections'
 
 -- VII -------------------------------------------------- 
