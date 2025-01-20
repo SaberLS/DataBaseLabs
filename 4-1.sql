@@ -621,47 +621,73 @@ GROUP BY p.ProductID, p.ProductName, p.CategoryID, p.UnitPrice
 
 -- VI -------------------------------------------------- 
 -- 1. Podaj produkty kupowane przez więcej niż jednego klienta
--- ?????????????????
+USE Northwind
+
 SELECT
-    DISTINCT
-    od.ProductID
-FROM
-    [Order Details] AS od
-WHERE od.ProductID IN (
-    SELECT
-    od1.ProductID
+    p.ProductName
+    ,COUNT(*) AS OrderedByClients
 FROM
     Orders AS o
-    JOIN [Order Details] AS od1
-    ON o.OrderID = od1.OrderID
-        AND od1.ProductID = od.ProductID
-GROUP BY o.CustomerID, od1.ProductID
+    JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
+    JOIN Products AS p
+    ON od.ProductID = p.ProductID
+GROUP BY od.ProductID, o.CustomerID, p.ProductName
 HAVING COUNT(*) > 1
-)
--- ?????????????????
 
 
 -- 2. Podaj produkty kupowane w 1997r przez więcej niż jednego klienta
--- ?????????????????
 SELECT
-    DISTINCT
-    od.ProductID
-FROM
-    [Order Details] AS od
-WHERE od.ProductID IN (
-    SELECT
-    od1.ProductID
+    p.ProductName
+    ,COUNT(*) AS OrderedByClients
 FROM
     Orders AS o
-    JOIN [Order Details] AS od1
-    ON o.OrderID = od1.OrderID
-        AND od1.ProductID = od.ProductID
+    JOIN [Order Details] AS od
+    ON o.OrderID = od.OrderID
         AND YEAR(o.OrderDate) = 1997
-GROUP BY o.CustomerID, od1.ProductID
+    JOIN Products AS p
+    ON od.ProductID = p.ProductID
+GROUP BY od.ProductID, o.CustomerID, p.ProductName
 HAVING COUNT(*) > 1
-)
--- ?????????????????
+
+
 -- 3. Podaj nazwy klientów którzy w 1997r kupili co najmniej dwa różne produkty z kategorii 'Confections'
+
+;WITH
+    Confections
+    AS
+    (
+        SELECT
+            p.ProductID
+        FROM
+            Products AS p
+            JOIN Categories AS c
+            ON p.CategoryID = c.CategoryID
+                AND c.CategoryName = 'Confections'
+    )
+    ,OrderConfection
+    AS
+    (
+        SELECT
+            o.CustomerID
+            ,COUNT(*) AS OrderedProducts
+        FROM
+            [Order Details] AS od
+            JOIN Confections AS c
+            ON od.ProductID = c.ProductID
+            JOIN Orders AS o
+            ON od.OrderID = o.OrderID
+        GROUP BY o.CustomerID, c.ProductID
+    )
+
+SELECT
+    CompanyName
+    ,oc.OrderedProducts
+FROM
+    Customers AS c
+    JOIN OrderConfection AS oc
+    ON c.CustomerID = oc.CustomerID
+WHERE oc.OrderedProducts >= 2
 
 -- VII -------------------------------------------------- 
 -- 1. Dla każdego pracownika (imię i nazwisko) podaj łączną wartość zamówień obsłużonych przez tego pracownika, przy obliczaniu wartości zamówień uwzględnij cenę za przesyłkę
