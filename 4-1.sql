@@ -141,13 +141,283 @@ GROUP BY o.CustomerID
 
 -- III -------------------------------------------------- 
 -- 1. Dla każdego dorosłego członka biblioteki podaj jego imię, nazwisko oraz liczbę jego dzieci.
+USE library
 
--- 2. Dla każdego dorosłego członka biblioteki podaj jego imię, nazwisko, liczbę jego dzieci, liczbę zarezerwowanych książek oraz liczbę wypożyczonych książek. 
--- 3. Dla każdego dorosłego członka biblioteki podaj jego imię, nazwisko, liczbę jego dzieci, oraz liczbę książek zarezerwowanych i wypożyczonych przez niego i jego dzieci. 
--- 4. Dla każdego tytułu książki podaj ile razy ten tytuł był wypożyczany w 2001r 
--- 5. Dla każdego tytułu książki podaj ile razy ten tytuł był wypożyczany w 2002r 
+;WITH
+    parents
+    AS
+    (
+        SELECT
+            COUNT(*) AS childCount
+            ,j.adult_member_no AS parent_no
+        FROM
+            juvenile AS j
+        GROUP BY j.adult_member_no
+    )
+
+SELECT
+    m.lastname
+    ,m.firstname
+    ,ISNULL(p.childCount, 0) AS childCount
+FROM
+    adult AS a
+    JOIN member AS m
+    ON a.member_no = m.member_no
+    LEFT JOIN parents AS p
+    ON a.member_no = p.parent_no
+;
+-- 2. Dla każdego dorosłego członka biblioteki podaj jego imię, nazwisko, liczbę jego dzieci, liczbę zarezerwowanych książek oraz liczbę wypożyczonych książek.
+
+USE library
+
+;WITH
+    reservated
+    AS
+    (
+        SELECT
+            COUNT(*) AS reservatedCount
+            ,member_no AS member_no
+        FROM
+            reservation
+        GROUP BY member_no
+    )   
+    ,loaned
+    AS
+    (
+        SELECT
+            COUNT(*) AS loanedCount
+            ,member_no AS member_no
+        FROM
+            loan
+        GROUP BY member_no
+    )
+    ,loanReserved
+    AS
+    (
+        SELECT
+            m.member_no AS member_no
+            ,ISNULL(r.reservatedCount,0) AS reservatedCount
+            ,ISNULL(l.loanedCount,0) AS loanedCount
+        FROM
+            member AS m
+            LEFT JOIN reservated AS r
+            ON m.member_no = r.member_no
+            LEFT JOIN loaned AS l
+            ON m.member_no = l.member_no
+    )
+    ,children
+    AS
+    (
+        SELECT
+            COUNT(*) AS childCount
+            ,adult_member_no AS adult_member_no
+        FROM
+            juvenile AS j
+        GROUP BY adult_member_no
+    )
+
+SELECT
+    m.lastname
+    ,m.firstname
+    ,c.childCount
+    ,lr.loanedCount
+    ,lr.reservatedCount
+FROM
+    adult AS a
+    JOIN member AS m
+    ON a.member_no = m.member_no
+    LEFT JOIN children AS c
+    ON a.member_no = c.adult_member_no
+    JOIN loanReserved AS lr
+    ON a.member_no = lr.member_no
+
+-- 3. Dla każdego dorosłego członka biblioteki podaj jego imię, nazwisko, liczbę jego dzieci, oraz liczbę książek zarezerwowanych i wypożyczonych przez niego i jego dzieci.
+
+USE library
+
+;WITH
+    reservated
+    AS
+    (
+        SELECT
+            COUNT(*) AS reservatedCount
+            ,member_no AS member_no
+        FROM
+            reservation
+        GROUP BY member_no
+    )   
+    ,loaned
+    AS
+    (
+        SELECT
+            COUNT(*) AS loanedCount
+            ,member_no AS member_no
+        FROM
+            loan
+        GROUP BY member_no
+    )
+    ,loanReserved
+    AS
+    (
+        SELECT
+            m.member_no AS member_no
+            ,ISNULL(r.reservatedCount,0) AS reservatedCount
+            ,ISNULL(l.loanedCount,0) AS loanedCount
+        FROM
+            member AS m
+            LEFT JOIN reservated AS r
+            ON m.member_no = r.member_no
+            LEFT JOIN loaned AS l
+            ON m.member_no = l.member_no
+    )
+    ,children
+    AS
+    (
+        SELECT
+            COUNT(*) AS childCount
+            ,SUM(lr.loanedCount) AS loanedCount
+            ,SUM(lr.reservatedCount) AS reservatedCount
+            ,adult_member_no AS adult_member_no
+        FROM
+            juvenile AS j
+            JOIN loanReserved AS lr
+            ON j.member_no = lr.member_no
+        GROUP BY adult_member_no
+    )
+
+SELECT
+    m.lastname
+    ,m.firstname
+    ,c.childCount
+    ,lr.loanedCount + c.loanedCount AS loanedCount
+    ,lr.reservatedCount + c.reservatedCount AS reservatedCount
+FROM
+    adult AS a
+    JOIN member AS m
+    ON a.member_no = m.member_no
+    LEFT JOIN children AS c
+    ON a.member_no = c.adult_member_no
+    JOIN loanReserved AS lr
+    ON a.member_no = lr.member_no
+
+
+SELECT
+    COUNT(*)
+FROM
+    reservation
+-- 2000
+-- reservation 2160
+
+-- SELECT
+--     SUM(lr.loanedCount) AS loanedCount -- 1000
+--     ,SUM(lr.reservatedCount) AS reservatedCount
+--     -- 1082
+--     -- SUM(c.loanedCount) AS loanedCount 1000
+--     -- ,SUM(c.reservatedCount) AS reservatedCount 1078
+-- FROM
+-- adult AS a
+-- JOIN member AS m
+-- ON a.member_no = m.member_no
+-- LEFT JOIN children AS c
+-- ON a.member_no = c.adult_member_no
+-- JOIN loanReserved AS lr
+-- ON a.member_no = lr.member_no
+
+USE library
+-- ,children
+-- AS
+-- (
+--     SELECT
+--         COUNT(*) AS childCount
+--         ,SUM(lr.reservatedCount) AS reservatedCount
+--         ,SUM(lr.loanedCount) AS loanedCount
+--         ,adult_member_no AS parent_no
+--     FROM
+--         juvenile AS j
+--         JOIN loanReserved AS lr ON j.member_no = lr.member_no
+--     GROUP BY adult_member_no
+-- )
+
+
+;WITH
+    loaned
+    AS
+    (
+        SELECT
+            COUNT(*) AS loanedCount
+            ,member_no AS loaner_no
+        FROM
+            loan
+        GROUP BY member_no
+    )
+    ,reservated
+    AS
+    (
+        SELECT
+            COUNT(*) AS reservatedCount
+            ,member_no AS reservator_no
+        FROM
+            reservation
+        GROUP BY member_no
+    )
+    ,loanReserved
+    AS
+    (
+        SELECT
+            m.member_no AS member_no
+            ,l.loanedCount AS loanedCount
+            ,r.reservatedCount AS reservatedCount
+        FROM
+            member AS m
+            JOIN reservated AS r
+            ON m.member_no = r.reservator_no
+            JOIN loaned AS l
+            ON m.member_no = l.loaner_no
+    )
+
+
+SELECT
+    m.lastname
+    ,m.firstname
+    ,reservatedCount
+    ,lr.loanedCount
+FROM
+    adult AS a
+    JOIN member AS m
+    ON a.member_no = m.member_no
+    LEFT JOIN loanReserved AS lr
+    ON a.member_no = lr.member_no
+;
+-- 4. Dla każdego tytułu książki podaj ile razy ten tytuł był wypożyczany w 2001r
+USE library
+
+SELECT
+    COUNT(*) AS loanCount
+    ,t.title
+FROM
+    title AS t
+    JOIN loanhist AS l
+    ON t.title_no = l.title_no
+        AND YEAR(l.in_date) = 2001
+GROUP BY t.title_no, t.title
+
+
+-- 5. Dla każdego tytułu książki podaj ile razy ten tytuł był wypożyczany w 2002r
+SELECT
+    COUNT(*) AS loanCount
+    ,t.title
+FROM
+    title AS t
+    JOIN loanhist AS l
+    ON t.title_no = l.title_no
+        AND YEAR(l.in_date) = 2002
+GROUP BY t.title_no, t.title
+
 -- IV -------------------------------------------------- 
 -- 1. Czy są jacyś klienci którzy nie złożyli żadnego zamówienia w 1997 roku, jeśli tak TO pokaż ich dane adresowe
+;
+USE Northwind
+
 SELECT
     c.Address
     ,c.City
@@ -394,7 +664,10 @@ HAVING COUNT(*) > 1
 -- 3. Podaj nazwy klientów którzy w 1997r kupili co najmniej dwa różne produkty z kategorii 'Confections'
 
 -- VII -------------------------------------------------- 
--- 1. Dla każdego pracownika (imię i nazwisko) podaj łączną wartość zamówień obsłużonych przez tego pracownika, przy obliczaniu wartości zamówień uwzględnij cenę za przesyłkę 
+-- 1. Dla każdego pracownika (imię i nazwisko) podaj łączną wartość zamówień obsłużonych przez tego pracownika, przy obliczaniu wartości zamówień uwzględnij cenę za przesyłkę
+
+
+
 -- 2. Który z pracowników był najaktywniejszy (obsłużył zamówienia o największej wartości) w 1997r, podaj imię i nazwisko takiego pracownika 
 -- 3. Ogranicz wynik z pkt 1 tylko do pracowników 
 -- 	a) którzy mają podwładnych 
