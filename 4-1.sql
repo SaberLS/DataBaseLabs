@@ -692,10 +692,302 @@ WHERE oc.OrderedProducts >= 2
 -- VII -------------------------------------------------- 
 -- 1. Dla każdego pracownika (imię i nazwisko) podaj łączną wartość zamówień obsłużonych przez tego pracownika, przy obliczaniu wartości zamówień uwzględnij cenę za przesyłkę
 
+;WITH
+    ProductsValue
+    AS
+    (
+        SELECT
+            OrderID
+            ,CAST(SUM((UnitPrice * Quantity) * (1 - Discount)) AS MONEY)  AS [Value]
+        FROM
+            [Order Details]
+        GROUP BY OrderID
+    )
+    ,OrdersValue
+    AS
+    (
+        SELECT
+            o.EmployeeID
+            ,CAST(SUM(o.Freight + p.[Value])AS MONEY) AS TotalValue
+        FROM
+            Orders AS o
+            JOIN ProductsValue AS p
+            ON o.OrderID = p.OrderID
+        GROUP BY o.EmployeeID
+    )
+
+SELECT
+    e.LastName
+    ,e.FirstName
+    ,o.TotalValue
+FROM
+    Employees AS e
+    JOIN OrdersValue AS o
+    ON e.EmployeeID = o.EmployeeID
+;
 
 
 -- 2. Który z pracowników był najaktywniejszy (obsłużył zamówienia o największej wartości) w 1997r, podaj imię i nazwisko takiego pracownika 
+
+;WITH
+    ProductsValue
+    AS
+    (
+        SELECT
+            OrderID
+            ,CAST(SUM((UnitPrice * Quantity) * (1 - Discount)) AS MONEY)  AS [Value]
+        FROM
+            [Order Details]
+        GROUP BY OrderID
+    )
+    ,OrdersValue
+    AS
+    (
+        SELECT
+            o.EmployeeID
+            ,CAST(SUM(o.Freight + p.[Value])AS MONEY) AS TotalValue
+        FROM
+            Orders AS o
+            JOIN ProductsValue AS p
+            ON o.OrderID = p.OrderID
+        WHERE YEAR(o.OrderDate) = 1997
+        GROUP BY o.EmployeeID
+    )
+
+SELECT
+    TOP 1
+    e.LastName
+    ,e.FirstName
+    ,o.TotalValue
+FROM
+    Employees AS e
+    JOIN OrdersValue AS o
+    ON e.EmployeeID = o.EmployeeID
+ORDER BY o.TotalValue DESC
+;
+
+
 -- 3. Ogranicz wynik z pkt 1 tylko do pracowników 
--- 	a) którzy mają podwładnych 
+-- 	a) którzy mają podwładnych
+
+;WITH
+    Supervisors
+    AS
+    (
+        SELECT
+            DISTINCT
+            ReportsTo AS EmployeeID
+        FROM
+            Employees
+        WHERE ReportsTo IS NOT NULL
+    )
+    ,ProductsValue
+    AS
+    (
+        SELECT
+            OrderID
+            ,CAST(SUM((UnitPrice * Quantity) * (1 - Discount)) AS MONEY)  AS [Value]
+        FROM
+            [Order Details]
+        GROUP BY OrderID
+    )
+    ,OrdersValue
+    AS
+    (
+        SELECT
+            o.EmployeeID
+            ,CAST(SUM(o.Freight + p.[Value])AS MONEY) AS TotalValue
+        FROM
+            Orders AS o
+            JOIN ProductsValue AS p
+            ON o.OrderID = p.OrderID
+        GROUP BY o.EmployeeID
+    )
+
+SELECT
+    e.LastName
+    ,e.FirstName
+    ,o.TotalValue
+FROM
+    Employees AS e
+    JOIN OrdersValue AS o
+    ON e.EmployeeID = o.EmployeeID
+WHERE e.EmployeeID IN (SELECT
+    s.EmployeeID
+FROM
+    Supervisors AS s)
+;
 -- 	b) którzy nie mają podwładnych
+;WITH
+    Supervisors
+    AS
+    (
+        SELECT
+            DISTINCT
+            ReportsTo AS EmployeeID
+        FROM
+            Employees
+        WHERE ReportsTo IS NOT NULL
+    )
+    ,ProductsValue
+    AS
+    (
+        SELECT
+            OrderID
+            ,CAST(SUM((UnitPrice * Quantity) * (1 - Discount)) AS MONEY)  AS [Value]
+        FROM
+            [Order Details]
+        GROUP BY OrderID
+    )
+    ,OrdersValue
+    AS
+    (
+        SELECT
+            o.EmployeeID
+            ,CAST(SUM(o.Freight + p.[Value])AS MONEY) AS TotalValue
+        FROM
+            Orders AS o
+            JOIN ProductsValue AS p
+            ON o.OrderID = p.OrderID
+        GROUP BY o.EmployeeID
+    )
+
+SELECT
+    e.EmployeeID
+    ,e.LastName
+    ,e.FirstName
+    ,o.TotalValue
+FROM
+    Employees AS e
+    JOIN OrdersValue AS o
+    ON e.EmployeeID = o.EmployeeID
+WHERE e.EmployeeID NOT IN (SELECT
+    s.EmployeeID
+FROM
+    Supervisors AS s)
+;
+
 -- 4. Zmodyfikuj rozwiązania z pkt 3 tak aby dla pracowników pokazać jeszcze datę ostatnio obsłużonego zamówienia
+;WITH
+    Supervisors
+    AS
+    (
+        SELECT
+            DISTINCT
+            ReportsTo AS EmployeeID
+        FROM
+            Employees
+        WHERE ReportsTo IS NOT NULL
+    )
+    ,ProductsValue
+    AS
+    (
+        SELECT
+            OrderID
+            ,CAST(SUM((UnitPrice * Quantity) * (1 - Discount)) AS MONEY)  AS [Value]
+        FROM
+            [Order Details]
+        GROUP BY OrderID
+    )
+    ,OrdersValue
+    AS
+    (
+        SELECT
+            o.EmployeeID
+            ,CAST(SUM(o.Freight + p.[Value])AS MONEY) AS TotalValue
+        FROM
+            Orders AS o
+            JOIN ProductsValue AS p
+            ON o.OrderID = p.OrderID
+        GROUP BY o.EmployeeID
+    )
+    ,LastOrder
+    AS
+    (
+        SELECT
+            MAX(OrderDate) AS LastDate
+            ,EmployeeID
+        FROM
+            Orders
+        GROUP BY EmployeeID
+    )
+
+SELECT
+    e.LastName
+    ,e.FirstName
+    ,o.TotalValue
+    ,lo.LastDate
+FROM
+    Employees AS e
+    JOIN OrdersValue AS o
+    ON e.EmployeeID = o.EmployeeID
+    JOIN LastOrder AS lo
+    ON e.EmployeeID = lo.EmployeeID
+WHERE e.EmployeeID IN (SELECT
+    s.EmployeeID
+FROM
+    Supervisors AS s)
+;
+-- 	b) którzy nie mają podwładnych
+;WITH
+    Supervisors
+    AS
+    (
+        SELECT
+            DISTINCT
+            ReportsTo AS EmployeeID
+        FROM
+            Employees
+        WHERE ReportsTo IS NOT NULL
+    )
+    ,ProductsValue
+    AS
+    (
+        SELECT
+            OrderID
+            ,CAST(SUM((UnitPrice * Quantity) * (1 - Discount)) AS MONEY)  AS [Value]
+        FROM
+            [Order Details]
+        GROUP BY OrderID
+    )
+    ,OrdersValue
+    AS
+    (
+        SELECT
+            o.EmployeeID
+            ,CAST(SUM(o.Freight + p.[Value])AS MONEY) AS TotalValue
+        FROM
+            Orders AS o
+            JOIN ProductsValue AS p
+            ON o.OrderID = p.OrderID
+        GROUP BY o.EmployeeID
+    )
+    ,LastOrder
+    AS
+    (
+        SELECT
+            MAX(OrderDate) AS LastDate
+            ,EmployeeID
+        FROM
+            Orders
+        GROUP BY EmployeeID
+    )
+
+
+SELECT
+    e.EmployeeID
+    ,e.LastName
+    ,e.FirstName
+    ,o.TotalValue
+    ,lo.LastDate
+FROM
+    Employees AS e
+    JOIN OrdersValue AS o
+    ON e.EmployeeID = o.EmployeeID
+    JOIN LastOrder AS lo
+    ON e.EmployeeID = lo.EmployeeID
+WHERE e.EmployeeID NOT IN (SELECT
+    s.EmployeeID
+FROM
+    Supervisors AS s)
+;
